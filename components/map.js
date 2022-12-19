@@ -6,25 +6,37 @@ import Distance from "./distance";
 
 function Map() {
 
+  const [office, setOffice] = useState();
   const center = useMemo(() => ({ lat: 43, lng: -80 }), []);
+  const mapRef = useRef()
   const options = useMemo(
     () => ({
+      mapId: "80c16bab8cea4c57",
       disableDefaultUI: true,
       clickableIcons: false,
     }),
     []
   );
 
+  const onLoad = useCallback(map => (mapRef.current = map), []);
+
   return (
     <div className="container">
       <div className="controls">
         <h1>Commute?</h1>
+        <Places setOffice={(location) => {
+          console.log(location)
+          setOffice(location);
+          mapRef.current?.panTo(location);
+        } } 
+        />
       </div>
-      <div className="map">
+      <div className="map" >
         <GoogleMap 
           zoom={10} 
           center={center} 
           mapContainerClassName="map-container"
+          onLoad={onLoad}
           options={options}
         ></GoogleMap>
       </div>
