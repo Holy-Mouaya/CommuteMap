@@ -7,8 +7,9 @@ import Distance from "./distance";
 function Map() {
 
   const [office, setOffice] = useState();
+  const [directions, setDirections] = useState();
   const center = useMemo(() => ({ lat: 43, lng: -80 }), []);
-  const mapRef = useRef()
+  const mapRef = useRef();
   const options = useMemo(
     () => ({
       mapId: "80c16bab8cea4c57",
@@ -19,6 +20,30 @@ function Map() {
   );
 
   const onLoad = useCallback(map => (mapRef.current = map), []);
+  const houses = useMemo(() => {
+    if (office) return generateHouses(office);
+  }, [office]);
+
+  const getDirections = (position) => {
+    if (!office){
+      return
+    }
+    else{
+      const service = new google.maps.DirectionsService();
+      service.route(
+        {
+          origin: position,
+          destination: office,
+          travelMode: google.maps.TravelMode.DRIVING
+        },
+        (result, status) => {
+          if (status === "OK" && result){
+            setDirections(result);
+          }
+        }
+      )
+    }
+  }
 
   return (
     <div className="container">
@@ -30,6 +55,8 @@ function Map() {
           mapRef.current?.panTo(location);
         } } 
         />
+        {!office && <p> Enter office address</p>}
+        {directions && <Distance leg={directions.routes[0].legs[0]} />}
       </div>
       <div className="map" >
         <GoogleMap 
@@ -38,7 +65,38 @@ function Map() {
           mapContainerClassName="map-container"
           onLoad={onLoad}
           options={options}
-        ></GoogleMap>
+        >
+
+          {directions &&
+            <DirectionsRenderer directions={directions} options={{
+              polylineOptions: {
+                zIndex:50,
+                strokeColor: "#00d9ff"
+              }
+            }}/>
+          }
+
+          {office && (
+            <>
+              <Marker 
+                position={office}
+              />
+
+              <MarkerClusterer>
+                {(clusterer) => (
+                  houses.map((house) => (<Marker key={house.lat} position={house} clusterer={clusterer}
+                    onClick={()=> {
+                      getDirections(house);
+                    }}  />) )
+                )}
+              </MarkerClusterer>
+
+              <Circle center={office} radius={15000} options={closeOptions}/>
+              <Circle center={office} radius={30000} options={middleOptions}/>
+              <Circle center={office} radius={45000} options={farOptions}/>
+            </>
+          )}
+        </GoogleMap>
       </div>
     </div>
   )
