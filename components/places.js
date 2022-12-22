@@ -18,7 +18,6 @@ function Places({ setOffice }) {
     setValue(val,false);
     clearSuggestions();
     const results = await getGeocode({address: val});
-    console.log(results)
     const {lat, lng} = await getLatLng(results[0]);
     setOffice({lat, lng});
   };

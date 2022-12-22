@@ -50,7 +50,6 @@ function Map() {
       <div className="controls">
         <h1>Commute?</h1>
         <Places setOffice={(location) => {
-          console.log(location)
           setOffice(location);
           mapRef.current?.panTo(location);
         } } 
